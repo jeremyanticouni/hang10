@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rfapp>
+  <doc>
+    <type>Element</type>
+    <name>Calendar Date Selector</name>
+    <description>An element that displays a monthly calendar that allows a user to pick a date.</description>
+    <property name="header-color" type="color" default="#FFFFFF">The color of the header background.</property>
+    <property name="header-font" type="font" default="Helvetica-Bold:18.0">The header font.</property>
+    <property name="header-day-labels-font" type="font" default="Helvetica-Bold:12.0">The header font.</property>
+    <property name="header-font-color" type="color" default="#000000">The header font color.</property>
+    <property name="day-font" type="font" default="Helvetica-Bold:18.0">The font used for the calendar dates.</property>
+    <property name="day-font-color" type="color" default="#000000">The color of the calendar date font.</property>
+    <property name="selected-day-font-color" type="color" default="#FFFFFF">The color of the calendar date font in a selected cell.</property>
+    <property name="day-cell-color" type="color" default="#FFFFFF">The color of day cells on the calendar.</property>
+    <property name="unused-day-cell-color" type="color" default="#CCCCCC">The color of day cells on the calendar when unpopulated.</property>
+    <property name="selected-day-cell-color" type="color" default="#FF0000">The color of day cells on the calendar when selected.</property>
+    <property name="grid-lines-color" type="color" default="#000000">The color of the grid lines.</property>
+    <property name="selected-month" type="string">The currently selected month.</property>
+    <property name="selected-day" type="string">The currently selected day.</property>
+    <property name="selected-year" type="string">The currently selected year.</property>
+    <property name="browsing-month" type="string">The month currently being browsed.</property>
+    <property name="browsing-year" type="string">The year currently being browsed.</property>
+    <event name="date-selected">Subscribe to this event to react to the action of the user selecting a date.</event>
+    <example><![CDATA[
+        <Element id="arrivalCalendar">
+          <property name="load-from">calendarPickerElement.xml</property>
+          <property name="horizontal-alignment">center</property>
+          <property name="enable-shadow">YES</property>
+          <property name="shadow-blur">10.0</property>
+          <property name="shadow-offset-down">10.0</property>
+          <property name="shadow-offset-right">0.0</property>
+          <actions>
+            <alert on="date-selected">
+              <property name="message">[get:arrivalCalendar("selected-month")]/[get:arrivalCalendar("selected-day")]/[get:arrivalCalendar("selected-year")]</property>
+            </alert>
+          </actions>
+        </Element>
+    ]]></example>
+  </doc>
+  <views>
+    <view>
+      <property name="padding">0</property>
+      <property name="header-color">#FFFFFF</property>
+      <property name="header-font">Helvetica-Bold:18.0</property>
+      <property name="header-day-labels-font">Helvetica-Bold:12.0</property>
+      <property name="header-font-color">#000000</property>
+      <property name="day-font">Helvetica-Bold:18.0</property>
+      <property name="day-font-color">#000000</property>
+      <property name="selected-day-font-color">#FFFFFF</property>
+      <property name="day-cell-color">#FFFFFF</property>
+      <property name="unused-day-cell-color">#CCCCCC</property>
+      <property name="selected-day-cell-color">#FF0000</property>
+      <property name="grid-lines-color">#000000</property>
+      <property name="selected-month">[eval:("time = new Date(); parseInt( time.getMonth() ) + 1")]</property>
+      <property name="selected-day">[eval:("time = new Date(); time.getDate()")]</property>
+      <property name="selected-year">[eval:("time = new Date(); time.getFullYear()")]</property>
+      <property name="browsing-month">[eval:("time = new Date(); parseInt( time.getMonth() ) + 1")]</property>
+      <property name="browsing-year">[eval:("time = new Date(); time.getFullYear()")]</property>
+      <property name="height">290</property>
+      <property name="width">280</property>
+      <datasources>
+        <XMLDataProvider id="daysData">
+          <property name="data"><![CDATA[
+<days>
+  [eval:("
+var numberOfBoxesToFill = 42;
+var numberOfDays = 31;
+var browsingMonth = parseInt('[get:user-widget('browsing-month')]');
+var browsingYear = parseInt('[get:user-widget('browsing-year')]');
+
+switch ( browsingMonth )
+{
+case 1 : case 3 : case 5: case 7: case 8: case 10: case 12:
+  numberOfDays = 31;
+  break;
+case 4: case 6: case 9: case 11:
+  numberOfDays = 30;
+  break;
+default:
+  numberOfDays = 28;
+}
+
+if ( browsingMonth == 2 && ((browsingYear%4 == 0) && (browsingYear%100 != 0 || browsingYear%400 == 0)))
+{
+    numberOfDays = 29;
+}
+
+var daysString = '';
+var boxesGenerated = 0;
+
+var time = new Date();
+time.setDate( 1 );
+time.setMonth( browsingMonth - 1 );
+time.setFullYear( browsingYear );
+
+var numberOfLeadingBoxes = parseInt( time.getDay() );
+
+for ( i = 1 ; i <= numberOfLeadingBoxes ; i++ )
+{
+  daysString = daysString + '<day \/>';
+  boxesGenerated++;
+}
+
+for ( i = 1 ; i <= numberOfDays ; i++ )
+{
+  daysString = daysString + '<day' + ' value\=\"' + i + '\"' + ' \/>';
+  boxesGenerated++;
+}
+
+for ( i = boxesGenerated ; i < numberOfBoxesToFill ; i++ )
+{
+  daysString = daysString + '<day \/>';
+}
+
+daysString
+")]
+</days>
+]]></property>
+        </XMLDataProvider>
+      </datasources>
+      <widgets>
+        <Layout id="mainContainer">
+          <property name="height">100%</property>
+          <property name="width">100%</property>
+          <widgets>
+            <Layout id="monthYearAndDaysOfWeek">
+              <property name="width">100%</property>
+              <property name="height">50</property>
+              <property name="bottom-margin">0</property>
+              <property name="background-color">[get:user-widget('header-color')]</property>
+              <widgets>
+                <Layout id="monthYearHeader">
+                  <property name="layout-type">absolute</property>
+                  <property name="vertical-alignment">top</property>
+                  <property name="horizontal-alignment">center</property>
+                  <property name="width">100%</property>
+                  <property name="height">30</property>
+                  <property name="background-color">[get:user-widget('header-color')]</property>
+                  <property name="bottom-margin">0</property>
+                  <widgets>
+                    <Layout id="monthContainer">
+                      <property name="layout-type">absolute</property>
+                      <property name="horizontal-alignment">center</property>
+                      <property name="vertical-alignment">middle</property>
+                      <property name="width">100%</property>
+                      <property name="height">40</property>
+                      <widgets>
+                        <Text id="monthAndYear">
+                          <property name="layout-type">absolute</property>
+                          <property name="font">[get:user-widget('header-font')]</property>
+                          <property name="horizontal-alignment">center</property>
+                          <property name="vertical-alignment">middle</property>
+                          <property name="text"><![CDATA[[eval:("
+var browsingMonth = parseInt('[get:user-widget(browsing-month)]');
+var monthNameString = '';
+switch ( browsingMonth )
+{
+case 1 :
+  monthNameString = 'January';
+  break;
+case 2 :
+  monthNameString = 'February';
+  break;
+case 3 :
+  monthNameString = 'March';
+  break;
+case 4 :
+  monthNameString = 'April';
+  break;
+case 5 :
+  monthNameString = 'May';
+  break;
+case 6 :
+  monthNameString = 'June';
+  break;
+case 7 :
+  monthNameString = 'July';
+  break;
+case 8 :
+  monthNameString = 'August';
+  break;
+case 9 :
+  monthNameString = 'September';
+  break;
+case 10 :
+  monthNameString = 'October';
+  break;
+case 11 :
+  monthNameString = 'November';
+  break;
+case 12 :
+  monthNameString = 'December';
+  break;
+default:
+  monthNameString = 'January';
+}
+monthNameString
+")]]]> [get:user-widget('browsing-year')]</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout id="decrementMonth">
+                      <property name="height">40</property>
+                      <property name="width">40</property>
+                      <property name="layout-type">absolute</property>
+                      <property name="horizontal-alignment">left</property>
+                      <property name="vertical-alignment">middle</property>
+                      <property name="animate-touch">NO</property>
+                      <actions>
+                        <modify on="touch">
+                          <property name="widget-id">user-widget</property>
+                          <values>
+                            <property name="browsing-year"><![CDATA[[eval:("
+var browsingYear = parseInt('[get:user-widget('browsing-year')]');
+var browsingMonth = parseInt('[get:user-widget('browsing-month')]');
+switch ( browsingMonth )
+{
+case 1 :
+  browsingYear = browsingYear - 1;
+  break;
+default:
+  browsingYear = browsingYear;
+}
+browsingYear
+")]]]></property>
+                            <property name="browsing-month"><![CDATA[[eval:("
+var browsingYear = parseInt('[get:user-widget('browsing-year')]');
+var browsingMonth = parseInt('[get:user-widget('browsing-month')]');
+switch ( browsingMonth )
+{
+case 1 :
+  browsingMonth = 12;
+  break;
+default:
+  browsingMonth = browsingMonth - 1;
+}
+browsingMonth
+")]]]></property>
+                          </values>
+                        </modify>
+                        <refresh on="touch">
+                          <property name="datasource-id">daysData</property>
+                        </refresh>
+                      </actions>
+                      <widgets>
+                        <Text>
+                          <property name="layout-type">absolute</property>
+                          <property name="font">[get:user-widget('header-font')]</property>
+                          <property name="horizontal-alignment">center</property>
+                          <property name="vertical-alignment">middle</property>
+                          <property name="text">«</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout id="incrementMonth">
+                      <property name="height">40</property>
+                      <property name="width">40</property>
+                      <property name="layout-type">absolute</property>
+                      <property name="horizontal-alignment">right</property>
+                      <property name="vertical-alignment">middle</property>
+                      <property name="animate-touch">NO</property>
+                      <actions>
+                        <modify on="touch">
+                          <property name="widget-id">user-widget</property>
+                          <values>
+                            <property name="browsing-year"><![CDATA[[eval:("
+var browsingYear = parseInt('[get:user-widget('browsing-year')]');
+var browsingMonth = parseInt('[get:user-widget('browsing-month')]');
+switch ( browsingMonth )
+{
+case 12 :
+  browsingYear = browsingYear + 1;
+  break;
+default:
+  browsingYear = browsingYear;
+}
+browsingYear
+")]]]></property>
+                            <property name="browsing-month"><![CDATA[[eval:("
+var browsingYear = parseInt('[get:user-widget('browsing-year')]');
+var browsingMonth = parseInt('[get:user-widget('browsing-month')]');
+switch ( browsingMonth )
+{
+case 12 :
+  browsingMonth = 1;
+  break;
+default:
+  browsingMonth = browsingMonth + 1;
+}
+browsingMonth
+")]]]></property>
+                          </values>
+                        </modify>
+                        <refresh on="touch">
+                          <property name="datasource-id">daysData</property>
+                        </refresh>
+                      </actions>
+                      <widgets>
+                        <Text>
+                          <property name="layout-type">absolute</property>
+                          <property name="font">[get:user-widget('header-font')]</property>
+                          <property name="horizontal-alignment">center</property>
+                          <property name="vertical-alignment">middle</property>
+                          <property name="text">»</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                  </widgets>
+                </Layout>
+                <Layout id="daysOfWeekLabels">
+                  <property name="width">100%</property>
+                  <property name="height">20</property>
+                  <property name="layout-flow">horizontal</property>
+                  <property name="horizontal-alignment">center</property>
+                  <property name="vertical-alignment">bottom</property>
+                  <property name="layout-type">absolute</property>
+                  <widgets>
+                    <Layout>
+                      <property name="width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+                      <widgets>
+                        <Text>
+                          <property name="font">[get:user-widget('header-day-labels-font')]</property>
+                          <property name="justification">center</property>
+                          <property name="text">SUN</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                          <property name="layout-type">absolute</property>
+                          <property name="horizontal-alignment">center</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout>
+                      <property name="width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+                      <widgets>
+                        <Text>
+                          <property name="font">[get:user-widget('header-day-labels-font')]</property>
+                          <property name="justification">center</property>
+                          <property name="text">MON</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                          <property name="layout-type">absolute</property>
+                          <property name="horizontal-alignment">center</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout>
+                      <property name="width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+                      <widgets>
+                        <Text>
+                          <property name="font">[get:user-widget('header-day-labels-font')]</property>
+                          <property name="justification">center</property>
+                          <property name="text">TUE</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                          <property name="layout-type">absolute</property>
+                          <property name="horizontal-alignment">center</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout>
+                      <property name="width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+                      <widgets>
+                        <Text>
+                          <property name="font">[get:user-widget('header-day-labels-font')]</property>
+                          <property name="justification">center</property>
+                          <property name="text">WED</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                          <property name="layout-type">absolute</property>
+                          <property name="horizontal-alignment">center</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout>
+                      <property name="width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+                      <widgets>
+                        <Text>
+                          <property name="font">[get:user-widget('header-day-labels-font')]</property>
+                          <property name="justification">center</property>
+                          <property name="text">THU</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                          <property name="layout-type">absolute</property>
+                          <property name="horizontal-alignment">center</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout>
+                      <property name="width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+                      <widgets>
+                        <Text>
+                          <property name="font">[get:user-widget('header-day-labels-font')]</property>
+                          <property name="justification">center</property>
+                          <property name="text">FRI</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                          <property name="layout-type">absolute</property>
+                          <property name="horizontal-alignment">center</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                    <Layout>
+                      <property name="width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+                      <widgets>
+                        <Text>
+                          <property name="font">[get:user-widget('header-day-labels-font')]</property>
+                          <property name="justification">center</property>
+                          <property name="text">SAT</property>
+                          <property name="color">[get:user-widget('header-font-color')]</property>
+                          <property name="layout-type">absolute</property>
+                          <property name="horizontal-alignment">center</property>
+                        </Text>
+                      </widgets>
+                    </Layout>
+                  </widgets>
+                </Layout>
+                <Widget id="upperBoundaryLine">
+                  <property name="layout-type">absolute</property>
+                  <property name="horizontal-alignment">center</property>
+                  <property name="vertical-alignment">top</property>
+                  <property name="width">100%</property>
+                  <property name="height">1</property>
+                  <property name="background-color">[get:user-widget('grid-lines-color')]</property>
+                  <property name="bottom-margin">0</property>
+                </Widget>
+                <Widget id="leftBoundaryLine">
+                  <property name="layout-type">absolute</property>
+                  <property name="horizontal-alignment">left</property>
+                  <property name="vertical-alignment">middle</property>
+                  <property name="width">1</property>
+                  <property name="height">100%</property>
+                  <property name="background-color">[get:user-widget('grid-lines-color')]</property>
+                  <property name="bottom-margin">0</property>
+                </Widget>
+                <Widget id="rightBoundaryLine">
+                  <property name="layout-type">absolute</property>
+                  <property name="horizontal-alignment">right</property>
+                  <property name="vertical-alignment">middle</property>
+                  <property name="width">1</property>
+                  <property name="height">100%</property>
+                  <property name="background-color">[get:user-widget('grid-lines-color')]</property>
+                  <property name="bottom-margin">0</property>
+                </Widget>
+              </widgets>
+            </Layout>
+            <Repeater id="daysRepeater">
+              <property name="row-data-id">daysData</property>
+              <property name="row-data-path">//days/day</property>
+              <property name="width">100%</property>
+              <property name="height">[eval:("('[get:user-widget('actual-width')]'/7)*6;")]</property>
+              <property name="border-width">1</property>
+              <property name="border-color">[get:user-widget('grid-lines-color')]</property>
+              <property name="item-height">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+              <property name="item-width">[eval:("('[get:user-widget('actual-width')]'/7);")]</property>
+              <property name="animate-new-rows">NO</property>
+              <property name="enable-scrolling">NO</property>
+              <property name="optimize-for-large-lists">YES</property>
+              <actions>
+                <modify on="touch">
+                  <property name="widget-id">user-widget</property>
+                  <values>
+                    <property name="selected-day" if="'[data:row('@value')]'!=''">[data:row("@value")]</property>
+                    <property name="selected-month" if="'[data:row('@value')]'!=''">[get:user-widget("browsing-month")]</property>
+                    <property name="selected-year" if="'[data:row('@value')]'!=''">[get:user-widget("browsing-year")]</property>
+                  </values>
+                </modify>
+                <function on="touch">
+                  <property name="function-name">raise-event</property>
+                  <property name="widget-id">user-widget</property>
+                  <values>
+                    <property name="event-name">date-selected</property>
+                  </values>
+                </function>
+              </actions>
+              <widgets>
+                <Layout>
+                  <property name="id">day-[data:row-index()]</property>
+                  <property name="width">[eval:("'[app:screen-width]'/7;")]</property>
+                  <property name="height">[eval:("'[app:screen-width]'/7;")]</property>
+                  <property name="border-width">1</property>
+                  <property name="border-color">[get:user-widget('grid-lines-color')]</property>
+                  <property name="layout-type">absolute</property>
+                  <property name="top-position">-1</property>
+                  <property name="left-position">-1</property>
+                  <property name="background-color"><![CDATA[[eval:("
+var theValue = '[data:row('@value')]';
+var selectedDay = '[get:user-widget('selected-day')]';
+var selectedMonth = '[get:user-widget('selected-month')]';
+var selectedYear = '[get:user-widget('selected-year')]';
+var browsingMonth = '[get:user-widget('browsing-month')]';
+var browsingYear = '[get:user-widget('browsing-year')]';
+var theColor = '[get:user-widget('day-cell-color')]';
+if ( theValue == '' )
+{
+  theColor = '[get:user-widget('unused-day-cell-color')]';
+}
+else if ( ( theValue == selectedDay ) && ( browsingMonth == selectedMonth ) && ( browsingYear == selectedYear ) )
+{
+  theColor = '[get:user-widget('selected-day-cell-color')]';
+}
+else
+{
+  theColor = '[get:user-widget('day-cell-color')]';
+}
+theColor
+")]]]></property>
+                  <widgets>
+                    <Text>
+                      <property name="layout-type">absolute</property>
+                      <property name="font">[get:user-widget('day-font')]</property>
+                      <property name="horizontal-alignment">center</property>
+                      <property name="vertical-alignment">middle</property>
+                      <property name="text">[data:row("@value")]</property>
+                      <property name="color"><![CDATA[[eval:("
+var theValue = '[data:row('@value')]';
+var selectedDay = '[get:user-widget('selected-day')]';
+var selectedMonth = '[get:user-widget('selected-month')]';
+var selectedYear = '[get:user-widget('selected-year')]';
+var browsingMonth = '[get:user-widget('browsing-month')]';
+var browsingYear = '[get:user-widget('browsing-year')]';
+var theColor = '000000';
+if ( theValue == '' )
+{
+  theColor = '000000';
+}
+else if ( ( theValue == selectedDay ) && ( browsingMonth == selectedMonth ) && ( browsingYear == selectedYear ) )
+{
+  theColor = 'FFFFFF';
+}
+else
+{
+  theColor = '000000';
+}
+theColor
+")]]]></property>
+                    </Text>
+                    <Layout>
+                      <property name="width">100%</property>
+                      <property name="height">5</property>
+                      <property name="layout-flow">horizontal</property>
+                      <property name="layout-type">float</property>
+                      <property name="vertical-alignment">bottom</property>
+                      <widgets>
+                        <Layout>
+                          <property name="width">33.3333333%</property>
+                          <property name="height">100%</property>
+                          <property name="background-color">#00000000</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/A')]'=='G'">#00a651</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/A')]'=='Y'">#fff200</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/A')]'=='R'">#790000</property>
+                        </Layout>
+                        <Layout>
+                          <property name="width">33.3333333%</property>
+                          <property name="height">100%</property>
+                          <property name="background-color">#00000000</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/N')]'=='G'">#00a651</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/N')]'=='Y'">#fff200</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/N')]'=='R'">#790000</property>
+                        </Layout>
+                        <Layout>
+                          <property name="width">33.3333333%</property>
+                          <property name="height">100%</property>
+                          <property name="background-color">#00000000</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/P')]'=='G'">#00a651</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/P')]'=='Y'">#fff200</property>
+                          <property name="background-color" if="'[data:flight_info('/root/get_cal/item/item[display_day = '[data:row('@value')]']/P')]'=='R'">#790000</property>
+                        </Layout>
+                      </widgets>
+                    </Layout>
+                  </widgets>
+                </Layout>
+              </widgets>
+            </Repeater>
+          </widgets>
+        </Layout>
+      </widgets>
+    </view>
+  </views>
+</rfapp>
